@@ -19,6 +19,10 @@ args = "Android App Build"
 task = "workflow.run"
 args = "android_app_execution"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Web Simulator"
+
 [[workflows.workflow]]
 name = "Android App Build"
 author = "agent"
@@ -47,5 +51,24 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "./gradlew assembleDebug && adb install -r app/build/outputs/apk/debug/app-debug.apk && adb shell am start -n com.example.youtubetranslator/.MainActivity"
 
+[[workflows.workflow]]
+name = "Web Simulator"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
+waitForPort = 5000
+
 [deployment]
 run = ["sh", "-c", "./gradlew assembleDebug"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
