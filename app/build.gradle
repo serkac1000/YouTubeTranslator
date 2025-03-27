@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace 'com.example.youtubetranslator'
     compileSdk 33
 
     defaultConfig {
@@ -22,29 +23,27 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    
     kotlinOptions {
         jvmTarget = '1.8'
     }
 }
 
 dependencies {
+    // Android core libraries
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
     // ExoPlayer for video playback
-    implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
-    implementation 'com.google.android.exoplayer:exoplayer-ui:2.19.1'
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.18.1'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.18.1'
     
-    // ML Kit for on-device translation
+    // ML Kit for translation
     implementation 'com.google.mlkit:translate:17.0.1'
     
     // Testing libraries
