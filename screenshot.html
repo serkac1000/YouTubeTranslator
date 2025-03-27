@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Translator Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #ccc;
+            border-radius: 16px;
+            overflow: hidden;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .app-header {
+            background-color: #3F51B5;
+            color: white;
+            padding: 16px;
+            text-align: center;
+        }
+        .input-field {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        .input-field input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .video-player {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            background-color: #000;
+        }
+        .video-player iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .subtitles {
+            padding: 16px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .subtitle-text {
+            margin: 4px 0;
+        }
+        .english-subtitle {
+            font-style: italic;
+            opacity: 0.9;
+        }
+        .russian-subtitle {
+            font-weight: bold;
+        }
+        .controls {
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #3F51B5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #303F9F;
+        }
+        .device-frame {
+            background-color: #111;
+            padding: 60px 20px;
+            border-radius: 40px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            margin: 40px 0;
+            position: relative;
+        }
+        .device-frame::before {
+            content: "";
+            position: absolute;
+            width: 60px;
+            height: 10px;
+            background-color: #222;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            background-color: #f9f9f9;
+        }
+        .error-message {
+            color: #D32F2F;
+            padding: 16px;
+            text-align: center;
+            background-color: #FFEBEE;
+            border-radius: 4px;
+            margin: 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>YouTube Translator Simulator</h1>
+    <p>This is a simulation of how the YouTube Translator Android app would work.</p>
+    
+    <div class="device-frame">
+        <div class="app-container">
+            <div class="app-header">
+                <h2>YouTube Translator</h2>
+            </div>
+            
+            <div class="input-field">
+                <input type="text" id="youtube-link" placeholder="Enter YouTube link here" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+            </div>
+            
+            <div id="video-container" class="video-player">
+                <div class="loading">Loading video player...</div>
+            </div>
+            
+            <div class="subtitles">
+                <div class="subtitle-text english-subtitle" id="english-subtitle">Enter a YouTube link above to start</div>
+                <div class="subtitle-text russian-subtitle" id="russian-subtitle">Введите ссылку на YouTube, чтобы начать</div>
+            </div>
+            
+            <div class="controls">
+                <button id="play-btn">Play Video</button>
+                <button id="translate-btn">Generate Translation</button>
+            </div>
+            
+            <div class="error-message" id="error-message">
+                Invalid YouTube URL. Please enter a valid URL.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Sample English phrases that would be detected from speech
+        const englishPhrases = [
+            "Hello, welcome to this video",
+            "Today we're going to learn something new",
+            "This is a demonstration of real-time translation",
+            "Thank you for watching this video",
+            "Please subscribe for more content",
+            "Let me show you how this works",
+            "The weather is beautiful today",
+            "I hope you're enjoying this tutorial",
+            "This technology is quite impressive",
+            "Let's dive into the main topic"
+        ];
+        
+        // Pre-translated Russian versions (in the same order)
+        const russianTranslations = [
+            "Здравствуйте, добро пожаловать в это видео",
+            "Сегодня мы изучим что-то новое",
+            "Это демонстрация перевода в реальном времени",
+            "Спасибо за просмотр этого видео",
+            "Пожалуйста, подпишитесь, чтобы увидеть больше контента",
+            "Позвольте мне показать, как это работает",
+            "Сегодня прекрасная погода",
+            "Надеюсь, вам нравится этот урок",
+            "Эта технология довольно впечатляющая",
+            "Давайте погрузимся в основную тему"
+        ];
+        
+        const youtubeLink = document.getElementById('youtube-link');
+        const playButton = document.getElementById('play-btn');
+        const translateButton = document.getElementById('translate-btn');
+        const videoContainer = document.getElementById('video-container');
+        const englishSubtitle = document.getElementById('english-subtitle');
+        const russianSubtitle = document.getElementById('russian-subtitle');
+        const errorMessage = document.getElementById('error-message');
+        
+        let translationInterval;
+        let currentPhraseIndex = 0;
+        
+        function extractYouTubeID(url) {
+            const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[7].length === 11) ? match[7] : false;
+        }
+        
+        function loadYouTubeVideo(videoId) {
+            videoContainer.innerHTML = `
+                <iframe
+                    src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                ></iframe>
+            `;
+        }
+        
+        function updateSubtitles() {
+            // Choose a random phrase
+            currentPhraseIndex = Math.floor(Math.random() * englishPhrases.length);
+            
+            // Update the subtitle elements
+            englishSubtitle.textContent = englishPhrases[currentPhraseIndex];
+            russianSubtitle.textContent = russianTranslations[currentPhraseIndex];
+        }
+        
+        function startTranslation() {
+            // Clear any existing interval
+            if (translationInterval) {
+                clearInterval(translationInterval);
+            }
+            
+            // Update subtitles immediately
+            updateSubtitles();
+            
+            // Set up interval to update subtitles every 5 seconds
+            translationInterval = setInterval(updateSubtitles, 5000);
+        }
+        
+        playButton.addEventListener('click', () => {
+            const url = youtubeLink.value.trim();
+            const videoId = extractYouTubeID(url);
+            
+            if (videoId) {
+                errorMessage.style.display = 'none';
+                loadYouTubeVideo(videoId);
+            } else {
+                errorMessage.style.display = 'block';
+            }
+        });
+        
+        translateButton.addEventListener('click', () => {
+            startTranslation();
+        });
+        
+        // Initialize with a default video
+        const defaultVideoId = extractYouTubeID(youtubeLink.value);
+        if (defaultVideoId) {
+            loadYouTubeVideo(defaultVideoId);
+        }
+    </script>
+</body>
+</html>
